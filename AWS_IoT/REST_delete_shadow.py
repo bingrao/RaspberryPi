@@ -1,7 +1,6 @@
 #------------------------------------------
-#--- Author: Pradeep Singh
-#--- Date: 2nd April 2017
-#--- Version: 1.0
+# --- Author: Bing
+# --- Version: 1.0
 #--- Python Ver: Python 2.7
 #--- Description: This code will delete (DELETE) the Device Shadw State Doc(Json) from AWS IoT Platform
 #---
@@ -18,8 +17,8 @@ from aws_sig_ver_4 import get_HTTP_Request_Header
 
 # ==================================================================
 # CHANGE VALUES FOR FOLLOWING VARIABLES AS PER YOUR SETUP
-ACCESS_KEY = "AKIAJH2QSN7AO4CPCRYQ" # Create one from AWS IAM Module
-SECRET_KEY = "A+/zdaddng0Y4FpB2oV3mTafl6g3pA+GpT81T3li" # Create one from AWS IAM Module
+ACCESS_KEY = "*" # Create one from AWS IAM Module
+SECRET_KEY = "*" # Create one from AWS IAM Module
 IOT_ENDPOINT = "a2xmpbgswmier.iot.us-west-2.amazonaws.com" # From AWS IoT Dashboard, go to "settings" to find your IoT Endpoint
 AWS_REGION = "us-west-2" # Your AWS Region. Full list at - http://docs.aws.amazon.com/general/latest/gr/rande.html#iot_region
 HTTPS_ENDPOINT_URL = "https://a2xmpbgswmier.iot.us-west-2.amazonaws.com" # Prefix your AWS IoT Endpoint with "https://"
