@@ -6,6 +6,7 @@ import sys
 import argparse
 
 import cv2
+import numpy as np
 
 from vehicle_counter import VehicleCounter
 
@@ -209,12 +210,8 @@ def process_frame(frame_number, frame, bg_subtractor, car_counter):
         cv2.rectangle(processed, (x, y), (x + w - 1, y + h - 1), BOUNDING_BOX_COLOUR, 1)
         cv2.circle(processed, centroid, 2, CENTROID_COLOUR, -1)
 
-        if frame_number % TIME_INTERVAL == 1:
-            log.debug("Updating vehicle count...")
-            car_counter.update_count(match, processed)
-
-        cv2.putText(processed, 'Counting: ' + str(car_counter.vehicle_count),
-                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    log.debug("Updating vehicle count...")
+    car_counter.update_count(matches, processed)
 
     return processed
 
@@ -255,6 +252,7 @@ def main():
     frame_number = -1
     while True:
         frame_number += 1
+        log.debug("Capturing frame #%d...", frame_number)
         ret, frame = cap.read()
         if not ret:
             log.error("Frame capture failed, stopping...")
