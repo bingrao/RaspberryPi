@@ -3,35 +3,73 @@ import logging.handlers
 import os
 import time
 import sys
+import argparse
 
 import cv2
-import numpy as np
 
 from vehicle_counter import VehicleCounter
+
+
 
 # ============================================================================
 
 IMAGE_DIR = "images"
 IMAGE_FILENAME_FORMAT = IMAGE_DIR + "/frame_%04d.png"
 
-# Support either video file or individual frames
-CAPTURE_FROM_VIDEO = True
-if CAPTURE_FROM_VIDEO:
-    IMAGE_SOURCE = "video1.avi" # Video file
-else:
-    IMAGE_SOURCE = IMAGE_FILENAME_FORMAT # Image sequence
-
 # Time to wait between frames, 0=forever
 WAIT_TIME = 1 # 250 # ms
 
-LOG_TO_FILE = True
+# Save the log information into the local file
+LOG_TO_FILE = False
+SAVE_TO_FRAME = False
 
 # Colours for drawing on processed frames
 DIVIDER_COLOUR = (255, 255, 0)
 BOUNDING_BOX_COLOUR = (255, 0, 0)
 CENTROID_COLOUR = (0, 0, 255)
 
+IMAGE_SOURCE = None
+CAPTURE_FROM_VIDEO = False
 # ============================================================================
+
+def parse_args():
+    log = logging.getLogger("parse_args")
+    global LOG_TO_FILE, IMAGE_SOURCE, CAPTURE_FROM_VIDEO, SAVE_TO_FRAME
+
+    # construct the argument parser and parse the arguments
+    ap = argparse.ArgumentParser(prog='PROG',description="Vehicle Counting based on RaspberryPi 3.0 B+")
+
+    # Create a mutually exclusive group. argparse will make sure that only one of the arguments
+    # in the mutually exclusive group was present on the command line:
+    group = ap.add_mutually_exclusive_group()
+    group.add_argument("-v","--video", help="The path to the video file")
+    group.add_argument("-s","--streaming",help="The index of camera that you want to use")
+    group.add_argument("-p","--picture", help = "The path to the picture files")
+
+    ap.add_argument("-l","--logFile", help = "Save log into a local file",action="store_true")
+    ap.add_argument("-f","--frameSave", help = "Save the intermediate frames",action="store_true")
+
+    args = vars(ap.parse_args())
+
+    # Support either video file, or streaming file, or individual frames
+    if args.get("video",None) is not None:
+        IMAGE_SOURCE = args["video"]
+        CAPTURE_FROM_VIDEO = True
+
+    if args.get("streaming",None) is not None:
+        IMAGE_SOURCE = int(args["streaming"])
+        CAPTURE_FROM_VIDEO = True
+    if args.get("picture",None) is not None:
+        IMAGE_SOURCE = args["picture"]
+
+    if args.get("logFile", False):
+        LOG_TO_FILE = True
+
+    if args.get("frameSave", False):
+        SAVE_TO_FRAME = True
+
+    return ap
+
 
 def init_logging():
     main_logger = logging.getLogger()
@@ -59,11 +97,11 @@ def init_logging():
 
 def save_frame(file_name_format, frame_number, frame, label_format):
     log = logging.getLogger("save_frame")
-    file_name = file_name_format % frame_number
-    label = label_format % frame_number
-
-    log.debug("Saving %s as '%s'", label, file_name)
-    cv2.imwrite(file_name, frame)
+    if SAVE_TO_FRAME:
+        file_name = file_name_format % frame_number
+        label = label_format % frame_number
+        log.debug("Saving %s as '%s'", label, file_name)
+        cv2.imwrite(file_name, frame)
 
 # ============================================================================
 # Get the central point of a car
@@ -179,11 +217,16 @@ def main():
     log.debug("Initializing video capture device #%s...", IMAGE_SOURCE)
     cap = cv2.VideoCapture(IMAGE_SOURCE)
 
+    # Check Camera is open or not
+    if not cap.isOpened():
+        log.debug("The Camera is not open ...")
+        cap.open()
+
     frame_width = cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
     frame_height = cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
     log.debug("Video capture frame size=(w=%d, h=%d)", frame_width, frame_height)
 
-    log.debug("Starting capture loop...")
+    log.debug("Starting capture loop...\n")
     frame_number = -1
     while True:
         frame_number += 1
@@ -214,7 +257,7 @@ def main():
         cv2.imshow('Source Image', frame)
         cv2.imshow('Processed Image', processed)
 
-        log.debug("Frame #%d processed.", frame_number)
+        log.debug("Frame #%d processed.\n", frame_number)
 
         c = cv2.waitKey(WAIT_TIME)
         if c == 27:
@@ -229,7 +272,17 @@ def main():
 # ============================================================================
 
 if __name__ == "__main__":
+
+    # Parse the arguments from command line
+    ap = parse_args()
+
+    # Initial log engine
     log = init_logging()
+
+    if IMAGE_SOURCE is None:
+        log.error("Please refer to the following help info...")
+        ap.print_help()
+        sys.exit(0)
 
     if not os.path.exists(IMAGE_DIR):
         log.debug("Creating image directory `%s`...", IMAGE_DIR)
