@@ -140,7 +140,7 @@ class VehicleCounter(object):
             for vehicle in self.vehicles:
                 vehicle.draw(output_image)
 
-            cv2.putText(output_image, ("Counting: %02d" % self.vehicle_count), (10, 10)
+            cv2.putText(output_image, ("Counting: %04d" % self.vehicle_count), (10, 10)
                 , cv2.FONT_HERSHEY_PLAIN, 0.7, (127, 255, 255), 1)
 
         # Remove vehicles that have not been seen long enough

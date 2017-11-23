@@ -39,11 +39,15 @@ IMAGE_SOURCE = None
 
 # Identify if the source come video or streaming
 CAPTURE_FROM_VIDEO = False
+
+CAPTURE_FROM_STREAMING = False
+
+CAPTURE_FROM_PICTURE = False
 # ============================================================================
 
 def parse_args():
     log = logging.getLogger("parse_args")
-    global LOG_TO_FILE, IMAGE_SOURCE, CAPTURE_FROM_VIDEO, SAVE_TO_FRAME, WAIT_TIME, TIME_INTERVAL
+    global LOG_TO_FILE, IMAGE_SOURCE, CAPTURE_FROM_VIDEO, SAVE_TO_FRAME, WAIT_TIME, TIME_INTERVAL, CAPTURE_FROM_STREAMING, CAPTURE_FROM_PICTURE
 
     # construct the argument parser and parse the arguments
     ap = argparse.ArgumentParser(prog='PROG',description="Vehicle Counting based on RaspberryPi 3.0 B+")
@@ -68,10 +72,11 @@ def parse_args():
 
     if args.get("streaming",None) is not None:
         IMAGE_SOURCE = int(args["streaming"])
-        CAPTURE_FROM_VIDEO = True
+        CAPTURE_FROM_STREAMING = True
 
     if args.get("picture",None) is not None:
         IMAGE_SOURCE = args["picture"]
+        CAPTURE_FROM_PICTURE = True
 
     if args.get("interval",None) is not None:
         TIME_INTERVAL = int(args["interval"])
@@ -244,6 +249,12 @@ def main():
         log.debug("The Camera is not open ...")
         cap.open()
 
+    #CV_CAP_PROP_FRAME_WIDTH = 3
+    #CV_CAP_PROP_FRAME_HEIGHT = 4
+    #if CAPTURE_FROM_STREAMING:
+    #    cap.set(CV_CAP_PROP_FRAME_WIDTH, 240);
+    #    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 320);
+
     frame_width = cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
     frame_height = cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
     log.debug("Video capture frame size=(w=%d, h=%d)", frame_width, frame_height)
@@ -266,7 +277,7 @@ def main():
             car_counter = VehicleCounter(frame.shape[:2], frame.shape[0] / 2)
 
         # Archive raw frames from video to disk for later inspection/testing
-        if CAPTURE_FROM_VIDEO:
+        if CAPTURE_FROM_VIDEO and CAPTURE_FROM_STREAMING:
             save_frame(IMAGE_FILENAME_FORMAT
                 , frame_number, frame, "source frame #%d")
 
