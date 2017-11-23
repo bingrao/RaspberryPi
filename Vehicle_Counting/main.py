@@ -12,15 +12,19 @@ from vehicle_counter import VehicleCounter
 
 
 # ============================================================================
-
+# Define global  vars
 IMAGE_DIR = "images"
 IMAGE_FILENAME_FORMAT = IMAGE_DIR + "/frame_%04d.png"
 
 # Time to wait between frames, 0=forever
 WAIT_TIME = 1 # 250 # ms
 
+TIME_INTERVAL = 15
+
 # Save the log information into the local file
 LOG_TO_FILE = False
+
+# Save intermeidate frame into the disk for later analysis
 SAVE_TO_FRAME = False
 
 # Colours for drawing on processed frames
@@ -28,13 +32,17 @@ DIVIDER_COLOUR = (255, 255, 0)
 BOUNDING_BOX_COLOUR = (255, 0, 0)
 CENTROID_COLOUR = (0, 0, 255)
 
+# Identify where the image source come from
 IMAGE_SOURCE = None
+
+
+# Identify if the source come video or streaming
 CAPTURE_FROM_VIDEO = False
 # ============================================================================
 
 def parse_args():
     log = logging.getLogger("parse_args")
-    global LOG_TO_FILE, IMAGE_SOURCE, CAPTURE_FROM_VIDEO, SAVE_TO_FRAME
+    global LOG_TO_FILE, IMAGE_SOURCE, CAPTURE_FROM_VIDEO, SAVE_TO_FRAME, WAIT_TIME, TIME_INTERVAL
 
     # construct the argument parser and parse the arguments
     ap = argparse.ArgumentParser(prog='PROG',description="Vehicle Counting based on RaspberryPi 3.0 B+")
@@ -48,6 +56,7 @@ def parse_args():
 
     ap.add_argument("-l","--logFile", help = "Save log into a local file",action="store_true")
     ap.add_argument("-f","--frameSave", help = "Save the intermediate frames",action="store_true")
+    ap.add_argument("-i", "--interval", help="The time interval to take a frame from video")
 
     args = vars(ap.parse_args())
 
@@ -59,8 +68,12 @@ def parse_args():
     if args.get("streaming",None) is not None:
         IMAGE_SOURCE = int(args["streaming"])
         CAPTURE_FROM_VIDEO = True
+
     if args.get("picture",None) is not None:
         IMAGE_SOURCE = args["picture"]
+
+    if args.get("interval",None) is not None:
+        TIME_INTERVAL = int(args["interval"])
 
     if args.get("logFile", False):
         LOG_TO_FILE = True
@@ -122,15 +135,17 @@ def detect_vehicles(fg_mask):
     MIN_CONTOUR_WIDTH = 21
     MIN_CONTOUR_HEIGHT = 21
 
-    # Find the contours of any vehicles in the image
+    # Find the contours of any object in  the image , but not all vehicles
     contours, hierarchy = cv2.findContours(fg_mask
         , cv2.RETR_EXTERNAL
         , cv2.CHAIN_APPROX_SIMPLE)
 
     log.debug("Found %d vehicle contours.", len(contours))
 
+    # Find valid vehicle contour
     matches = []
     for (i, contour) in enumerate(contours):
+        # Get a rectangle of this contour
         (x, y, w, h) = cv2.boundingRect(contour)
         contour_valid = (w >= MIN_CONTOUR_WIDTH) and (h >= MIN_CONTOUR_HEIGHT)
 
@@ -194,8 +209,12 @@ def process_frame(frame_number, frame, bg_subtractor, car_counter):
         cv2.rectangle(processed, (x, y), (x + w - 1, y + h - 1), BOUNDING_BOX_COLOUR, 1)
         cv2.circle(processed, centroid, 2, CENTROID_COLOUR, -1)
 
-    log.debug("Updating vehicle count...")
-    car_counter.update_count(matches, processed)
+        if frame_number % TIME_INTERVAL == 1:
+            log.debug("Updating vehicle count...")
+            car_counter.update_count(match, processed)
+
+        cv2.putText(processed, 'Counting: ' + str(car_counter.vehicle_count),
+                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
     return processed
 
@@ -217,6 +236,12 @@ def main():
     log.debug("Initializing video capture device #%s...", IMAGE_SOURCE)
     cap = cv2.VideoCapture(IMAGE_SOURCE)
 
+    # Capture every TIME_INTERVAL seconds (here, TIME_INTERVAL = 5)
+    #fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)  # Gets the frames per second
+    #multiplier = TIME_INTERVAL
+
+    log.debug("Update car counting by every %d ...", TIME_INTERVAL)
+
     # Check Camera is open or not
     if not cap.isOpened():
         log.debug("The Camera is not open ...")
@@ -230,7 +255,6 @@ def main():
     frame_number = -1
     while True:
         frame_number += 1
-        log.debug("Capturing frame #%d...", frame_number)
         ret, frame = cap.read()
         if not ret:
             log.error("Frame capture failed, stopping...")
