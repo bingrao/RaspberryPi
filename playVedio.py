@@ -14,7 +14,7 @@ if __name__ == "__main__":
         if ret is True:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         else:
-        print("Frame capture failed, stopping...\n")
+            print("Frame capture failed, stopping...\n")
             break;
 
 

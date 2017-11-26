@@ -43,7 +43,7 @@ SHADOW_STATE_DOC_Camera_OFF = """{"state" : {"reported" : {"Camera" : "OFF"}}}""
 
 
 # Initiate MQTT Client
-mqttc = mqtt.Client("Bing_2")
+mqttc = mqtt.Client("Bing")
 # Initiate camera
 camera = picamera.PiCamera()
 snapshot = 'my_image.jpg'
@@ -70,6 +70,7 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
 		sleep(2)
 		camera.capture(my_file)
 		my_file.close()
+		camera.close()
 		# Report Camera ON Status back to Shadow
 		print("Camera Turned ON. Reporting ON Status to Shadow...")
 		mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_ON,qos=1)

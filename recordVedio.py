@@ -25,7 +25,6 @@ if __name__ == "__main__":
         if ret:
             video_writer.write(frame)
             cv2.imshow('Video Stream', frame)
-
         else:
             break
 			
