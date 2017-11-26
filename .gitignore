@@ -99,3 +99,6 @@ ENV/
 .idea/
 # mypy
 .mypy_cache/
+
+#Pycharm
+.idea/
