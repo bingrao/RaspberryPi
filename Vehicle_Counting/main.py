@@ -23,9 +23,9 @@ CA_ROOT_CERT_FILE = "/home/pi/Documents/Amazon/rootCA.pem.crt"
 # AWS IoT Thing Name
 THING_NAME = "MyRaspberryPi"
 # AWS IoT Thing Certificate File Path
-THING_CERT_FILE = "/home/pi/Documents/Amazon/423ce807c5-certificate.pem.crt"
+THING_CERT_FILE = "/home/pi/Documents/Amazon/e14cad1d9a-certificate.pem.crt"
 # AWS IoT Thing Private Key File Path
-THING_PRIVATE_KEY_FILE = "/home/pi/Documents/Amazon/423ce807c5-private.pem.key"
+THING_PRIVATE_KEY_FILE = "/home/pi/Documents/Amazon/e14cad1d9a-private.pem.key"
 # =======================================================
 # Set global topic, but no need to change following variables
 MQTT_PORT = 8883
@@ -50,7 +50,7 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
     log = logging.getLogger("Camera_Status_Change")
     # Parse Camera Status from Shadow
     DESIRED_Camera_STATUS = ""
-    ("\nParsing Shadow Json...")
+    log.info("\nParsing Shadow Json...")
     SHADOW_State_Doc = json.loads(Shadow_State_Doc)
     if Type == "DELTA":
         DESIRED_Camera_STATUS = SHADOW_State_Doc['state']['Counting']

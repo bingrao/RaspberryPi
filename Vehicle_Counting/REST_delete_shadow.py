@@ -17,8 +17,8 @@ from aws_sig_ver_4 import get_HTTP_Request_Header
 
 # ==================================================================
 # CHANGE VALUES FOR FOLLOWING VARIABLES AS PER YOUR SETUP
-ACCESS_KEY = "AKIAJ2QQHFYTCMV7G2JQ" # Create one from AWS IAM Module
-SECRET_KEY = "QLxhIkf4r1cQzF9EtqtvWUdsRJzt5w5c7tvgnBvV" # Create one from AWS IAM Module
+ACCESS_KEY = "AKIAJ5STY5H5QNWA4WUQ" # Create one from AWS IAM Module
+SECRET_KEY = "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" # Create one from AWS IAM Module
 IOT_ENDPOINT = "a2xmpbgswmier.iot.us-west-2.amazonaws.com" # From AWS IoT Dashboard, go to "settings" to find your IoT Endpoint
 AWS_REGION = "us-west-2" # Your AWS Region. Full list at - http://docs.aws.amazon.com/general/latest/gr/rande.html#iot_region
 HTTPS_ENDPOINT_URL = "https://a2xmpbgswmier.iot.us-west-2.amazonaws.com" # Prefix your AWS IoT Endpoint with "https://"

@@ -20,9 +20,9 @@ CA_ROOT_CERT_FILE = "/home/pi/Documents/Amazon/rootCA.pem.crt"
 # AWS IoT Thing Name
 THING_NAME = "MyRaspberryPi"
 # AWS IoT Thing Certificate File Path
-THING_CERT_FILE = "/home/pi/Documents/Amazon/423ce807c5-certificate.pem.crt"
+THING_CERT_FILE = "/home/pi/Documents/Amazon/e14cad1d9a-certificate.pem.crt"
 # AWS IoT Thing Private Key File Path
-THING_PRIVATE_KEY_FILE = "/home/pi/Documents/Amazon/423ce807c5-private.pem.key"
+THING_PRIVATE_KEY_FILE = "/home/pi/Documents/Amazon/e14cad1d9a-private.pem.key"
 # =======================================================
 
 
