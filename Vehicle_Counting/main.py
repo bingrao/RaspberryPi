@@ -138,8 +138,8 @@ def get_centroid(x, y, w, h):
 def detect_vehicles(fg_mask):
     log = logging.getLogger("detect_vehicles")
 
-    MIN_CONTOUR_WIDTH = 21
-    MIN_CONTOUR_HEIGHT = 21
+    MIN_CONTOUR_WIDTH = 10
+    MIN_CONTOUR_HEIGHT = 10
 
     # Find the contours of any object in  the image , but not all vehicles
     contours, hierarchy = cv2.findContours(fg_mask
@@ -249,11 +249,11 @@ def main():
         log.debug("The Camera is not open ...")
         cap.open()
 
-    #CV_CAP_PROP_FRAME_WIDTH = 3
-    #CV_CAP_PROP_FRAME_HEIGHT = 4
-    #if CAPTURE_FROM_STREAMING:
-    #    cap.set(CV_CAP_PROP_FRAME_WIDTH, 240);
-    #    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 320);
+    CV_CAP_PROP_FRAME_WIDTH = 3
+    CV_CAP_PROP_FRAME_HEIGHT = 4
+    if CAPTURE_FROM_STREAMING:
+        cap.set(CV_CAP_PROP_FRAME_WIDTH, 320);
+        cap.set(CV_CAP_PROP_FRAME_HEIGHT, 320);
 
     frame_width = cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
     frame_height = cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
