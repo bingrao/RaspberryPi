@@ -15,7 +15,6 @@ import picamera
 import os
 from time import sleep
 
-snapshot = 'my_image.jpg'
 # =======================================================
 # Set Following Variables AWS IoT Endpoint
 MQTT_HOST = "a2xmpbgswmier.iot.us-west-2.amazonaws.com"
@@ -27,7 +26,6 @@ THING_NAME = "MyRaspberryPi"
 THING_CERT_FILE = "/home/pi/Documents/Amazon/423ce807c5-certificate.pem.crt"
 # AWS IoT Thing Private Key File Path
 THING_PRIVATE_KEY_FILE = "/home/pi/Documents/Amazon/423ce807c5-private.pem.key"
-
 # =======================================================
 # Set global topic, but no need to change following variables
 MQTT_PORT = 8883
@@ -39,48 +37,52 @@ SHADOW_UPDATE_DELTA_TOPIC = "$aws/things/" + THING_NAME + "/shadow/update/delta"
 SHADOW_GET_TOPIC = "$aws/things/" + THING_NAME + "/shadow/get"
 SHADOW_GET_ACCEPTED_TOPIC = "$aws/things/" + THING_NAME + "/shadow/get/accepted"
 SHADOW_GET_REJECTED_TOPIC = "$aws/things/" + THING_NAME + "/shadow/get/rejected"
-SHADOW_STATE_DOC_Camera_ON = """{"state" : {"reported" : {"Camera" : "ON"}}}"""
-SHADOW_STATE_DOC_Camera_OFF = """{"state" : {"reported" : {"Camera" : "OFF"}}}"""
+SHADOW_STATE_DOC_Camera_ON = """{"state" : {"reported" : {"Counting" : "ON"}}}"""
+SHADOW_STATE_DOC_Camera_OFF = """{"state" : {"reported" : {"Counting" : "OFF"}}}"""
 # =======================================================
+
+
+snapshot = 'my_image.jpg'
+mqttc = mqtt.Client("Bing")
 
 # Master Camera Control Function
 def Camera_Status_Change(Shadow_State_Doc, Type):
     log = logging.getLogger("Camera_Status_Change")
-	# Parse Camera Status from Shadow
-	DESIRED_Camera_STATUS = ""
-	log.info("\nParsing Shadow Json...")
-	SHADOW_State_Doc = json.loads(Shadow_State_Doc)
-	if Type == "DELTA":
-		DESIRED_Camera_STATUS = SHADOW_State_Doc['state']['Camera']
-	elif Type == "GET_REQ":
-		DESIRED_Camera_STATUS = SHADOW_State_Doc['state']['desired']['Camera']
-	log.info("Desired Camera Status: " + DESIRED_Camera_STATUS)
+    # Parse Camera Status from Shadow
+    DESIRED_Camera_STATUS = ""
+    ("\nParsing Shadow Json...")
+    SHADOW_State_Doc = json.loads(Shadow_State_Doc)
+    if Type == "DELTA":
+        DESIRED_Camera_STATUS = SHADOW_State_Doc['state']['Counting']
+    elif Type == "GET_REQ":
+        DESIRED_Camera_STATUS = SHADOW_State_Doc['state']['desired']['Counting']
+    log.info("Desired Camera Status: " + DESIRED_Camera_STATUS)
 
-	# Control Camera
-	if DESIRED_Camera_STATUS == "ON":
-		# Turn Camera ON
-		log.info("\nTurning ON Camera...")
-		# Initiate camera
-		camera = picamera.PiCamera()
-		#GPIO.output(Camera_PIN, GPIO.HIGH)
-		my_file = open(snapshot, 'wb')
-		camera.start_preview()
-		sleep(2)
-		camera.capture(my_file)
-		my_file.close()
-		camera.close()
-		# Report Camera ON Status back to Shadow
-		log.info("Camera Turned ON. Reporting ON Status to Shadow...")
-		mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_ON,qos=1)
-	elif DESIRED_Camera_STATUS == "OFF":
-		# Turn Camera OFF
-		log.info("\nTurning OFF Camera...")
-		os.remove(snapshot)
-		# Report Camera OFF Status back to Shadow
-		log.info("Camera Turned OFF. Reporting OFF Status to Shadow...")
-		mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_OFF,qos=1)
-	else:
-		log.info("---ERROR--- Invalid Camera STATUS.")
+    # Control Camera
+    if DESIRED_Camera_STATUS == "ON":
+        # Turn Camera ON
+        log.info("Starting counting...")
+        # Initiate camera
+        camera = picamera.PiCamera()
+        #GPIO.output(Camera_PIN, GPIO.HIGH)
+        my_file = open(snapshot, 'wb')
+        camera.start_preview()
+        sleep(2)
+        camera.capture(my_file)
+        my_file.close()
+        camera.close()
+        # Report Camera ON Status back to Shadow
+        log.info("Camera Turned ON. Reporting Status to Shadow...")
+        mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_ON,qos=1)
+    elif DESIRED_Camera_STATUS == "OFF":
+        # Turn Camera OFF
+        log.info("\nTurning OFF Camera...")
+        os.remove(snapshot)
+        # Report Camera OFF Status back to Shadow
+        log.info("Camera Turned OFF. Reporting OFF Status to Shadow...")
+        mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_OFF,qos=1)
+    else:
+        log.info("---ERROR--- Invalid Camera STATUS.")
 
 
 
@@ -88,17 +90,17 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
 # We shall subscribe to Shadow Accepted and Rejected Topics in this function
 def on_connect(mosq, obj,flags,rc):
     log = logging.getLogger("on_connect")
-	log.info("Connected to AWS IoT...")
-	# Subscribe to Delta Topic
-	mqttc.subscribe(SHADOW_UPDATE_DELTA_TOPIC, 1)
-	# Subscribe to Update Topic
-	#mqttc.subscribe(SHADOW_UPDATE_TOPIC, 1)
-	# Subscribe to Update Accepted and Rejected Topics
-	mqttc.subscribe(SHADOW_UPDATE_ACCEPTED_TOPIC, 1)
-	mqttc.subscribe(SHADOW_UPDATE_REJECTED_TOPIC, 1)
-	# Subscribe to Get Accepted and Rejected Topics
-	mqttc.subscribe(SHADOW_GET_ACCEPTED_TOPIC, 1)
-	mqttc.subscribe(SHADOW_GET_REJECTED_TOPIC, 1)
+    log.info("Connected to AWS IoT...")
+    # Subscribe to Delta Topic
+    mqttc.subscribe(SHADOW_UPDATE_DELTA_TOPIC, 1)
+    # Subscribe to Update Topic
+    #mqttc.subscribe(SHADOW_UPDATE_TOPIC, 1)
+    # Subscribe to Update Accepted and Rejected Topics
+    mqttc.subscribe(SHADOW_UPDATE_ACCEPTED_TOPIC, 1)
+    mqttc.subscribe(SHADOW_UPDATE_REJECTED_TOPIC, 1)
+    # Subscribe to Get Accepted and Rejected Topics
+    mqttc.subscribe(SHADOW_GET_ACCEPTED_TOPIC, 1)
+    mqttc.subscribe(SHADOW_GET_REJECTED_TOPIC, 1)
 
 
 # Define on_message event function.
@@ -106,41 +108,59 @@ def on_connect(mosq, obj,flags,rc):
 # a new message arrives for the subscribed topic
 def on_message(mosq, obj, msg):
     log = logging.getLogger("on_message")
-	if str(msg.topic) == SHADOW_UPDATE_DELTA_TOPIC:
-		log.info("\nNew Delta Message Received...")
-		SHADOW_STATE_DELTA = str(msg.payload)
-		log.info(SHADOW_STATE_DELTA)
-		Camera_Status_Change(SHADOW_STATE_DELTA, "DELTA")
-	elif str(msg.topic) == SHADOW_GET_ACCEPTED_TOPIC:
-		log.info("\nReceived State Doc with Get Request...")
-		SHADOW_STATE_DOC = str(msg.payload)
-		log.info(SHADOW_STATE_DOC)
-		Camera_Status_Change(SHADOW_STATE_DOC, "GET_REQ")
-	elif str(msg.topic) == SHADOW_GET_REJECTED_TOPIC:
-		SHADOW_GET_ERROR = str(msg.payload)
-		log.info("\n---ERROR--- Unable to fetch Shadow Doc...\nError Response: " + SHADOW_GET_ERROR)
-	elif str(msg.topic) == SHADOW_UPDATE_ACCEPTED_TOPIC:
-		log.info("\nCamera Status Change Updated SUCCESSFULLY in Shadow...")
-		log.info("Response JSON: " + str(msg.payload))
-	elif str(msg.topic) == SHADOW_UPDATE_REJECTED_TOPIC:
-		SHADOW_UPDATE_ERROR = str(msg.payload)
-		log.info("\n---ERROR--- Failed to Update the Shadow...\nError Response: " + SHADOW_UPDATE_ERROR)
-	else:
-		log.info("AWS Response Topic: " + str(msg.topic))
-		log.info("QoS: " + str(msg.qos))
-		log.info("Payload: " + str(msg.payload))
+    if str(msg.topic) == SHADOW_UPDATE_DELTA_TOPIC:
+        log.info ("\nNew Delta Message Received...")
+        SHADOW_STATE_DELTA = str(msg.payload)
+        log.info(SHADOW_STATE_DELTA)
+        Camera_Status_Change(SHADOW_STATE_DELTA, "DELTA")
+    elif str(msg.topic) == SHADOW_GET_ACCEPTED_TOPIC:
+        log.info("\nReceived State Doc with Get Request...")
+        SHADOW_STATE_DOC = str(msg.payload)
+        log.info(SHADOW_STATE_DOC)
+        Camera_Status_Change(SHADOW_STATE_DOC, "GET_REQ")
+    elif str(msg.topic) == SHADOW_GET_REJECTED_TOPIC:
+        SHADOW_GET_ERROR = str(msg.payload)
+        log.info("\n---ERROR--- Unable to fetch Shadow Doc...\nError Response: " + SHADOW_GET_ERROR)
+    elif str(msg.topic) == SHADOW_UPDATE_ACCEPTED_TOPIC:
+        log.info("\nCamera Status Change Updated SUCCESSFULLY in Shadow...")
+        log.info("Response JSON: " + str(msg.payload))
+    elif str(msg.topic) == SHADOW_UPDATE_REJECTED_TOPIC:
+        SHADOW_UPDATE_ERROR = str(msg.payload)
+        log.info("\n---ERROR--- Failed to Update the Shadow...\nError Response: " + SHADOW_UPDATE_ERROR)
+    else:
+        log.info("AWS Response Topic: " + str(msg.topic))
+        log.info("QoS: " + str(msg.qos))
+        log.info("Payload: " + str(msg.payload))
 
 
 def on_subscribe(mosq, obj, mid, granted_qos):
-	#As we are subscribing to 3 Topics, wait till all 3 topics get subscribed
-	#for each subscription mid will get incremented by 1 (starting with 1)
-	if mid == 3:
-		# Fetch current Shadow status. Useful for reconnection scenario.
-		mqttc.publish(SHADOW_GET_TOPIC,"",qos=1)
+    log = logging.getLogger("on_subscribe")
+    #As we are subscribing to 3 Topics, wait till all 3 topics get subscribed
+    #for each subscription mid will get incremented by 1 (starting with 1)
+    if mid == 3:
+        # Fetch current Shadow status. Useful for reconnection scenario.
+        mqttc.publish(SHADOW_GET_TOPIC,"",qos=1)
 
 def on_disconnect(client, userdata, rc):
+    log = logging.getLogger("on_disconnect")
     if rc != 0:
         log.info("Diconnected from AWS IoT. Trying to auto-reconnect...")
+
+def initial_mqttclient():
+    log = logging.getLogger("initial_mqttclient")
+    # Register callback functions
+    mqttc.on_message = on_message
+    mqttc.on_connect = on_connect
+    mqttc.on_subscribe = on_subscribe
+    mqttc.on_disconnect = on_disconnect
+
+    # Configure TLS Set
+    mqttc.tls_set(CA_ROOT_CERT_FILE, certfile=THING_CERT_FILE, keyfile=THING_PRIVATE_KEY_FILE,
+                      cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLSv1_2, ciphers=None)
+
+    # Connect with MQTT Broker
+    mqttc.connect(MQTT_HOST, MQTT_PORT, MQTT_KEEPALIVE_INTERVAL)
+
 
 # ============================================================================
 # Define global  vars
@@ -451,22 +471,7 @@ if __name__ == "__main__":
         log.debug("Creating image directory `%s`...", IMAGE_DIR)
         os.makedirs(IMAGE_DIR)
 
-    # Initiate MQTT Client
-    mqttc = mqtt.Client("Bing")
-
-    # Register callback functions
-    mqttc.on_message = on_message
-    mqttc.on_connect = on_connect
-    mqttc.on_subscribe = on_subscribe
-    mqttc.on_disconnect = on_disconnect
-
-    # Configure TLS Set
-    mqttc.tls_set(CA_ROOT_CERT_FILE, certfile=THING_CERT_FILE, keyfile=THING_PRIVATE_KEY_FILE,
-                  cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLSv1_2, ciphers=None)
-
-    # Connect with MQTT Broker
-    mqttc.connect(MQTT_HOST, MQTT_PORT, MQTT_KEEPALIVE_INTERVAL)
-
-    # Continue monitoring the incoming messages for subscribed topic
+    initial_mqttclient()
     mqttc.loop_forever()
+
     #main()

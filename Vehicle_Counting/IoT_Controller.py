@@ -62,8 +62,8 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
 	if DESIRED_Camera_STATUS == "ON":
 		# Turn Camera ON
 		print("\nTurning ON Camera...")
-		# Initiate camera
-		camera = picamera.PiCamera()
+        # Initiate camera
+        camera = picamera.PiCamera()
 		#GPIO.output(Camera_PIN, GPIO.HIGH)
 		my_file = open(snapshot, 'wb')
 		camera.start_preview()
