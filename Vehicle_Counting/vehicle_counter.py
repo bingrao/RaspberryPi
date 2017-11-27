@@ -93,8 +93,7 @@ class VehicleCounter(object):
         # Find if any of the matches fits this vehicle
         for i, match in enumerate(matches):
             contour, centroid = match
-
-            vector = self.get_vector(vehicle.last_position, centroid)
+            vector = self.get_vector(vehicle.last_position                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            , centroid)
             if self.is_valid_vector(vector):
                 vehicle.add_position(centroid)
                 self.log.debug("Added match (%d, %d) to vehicle #%d. vector=(%0.2f,%0.2f)"
@@ -129,7 +128,9 @@ class VehicleCounter(object):
 
         # Count any uncounted vehicles that are past the divider
         for vehicle in self.vehicles:
-            if not vehicle.counted and (vehicle.last_position[1] > self.divider):
+            #if not vehicle.counted and (vehicle.last_position[1] > self.divider):
+             # When a vehicle apprear first time then counting it. After that tracking
+             if not vehicle.counted:
                 self.vehicle_count += 1
                 vehicle.counted = True
                 self.log.debug("Counted vehicle #%d (total count=%d)."

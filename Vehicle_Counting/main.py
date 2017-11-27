@@ -41,6 +41,7 @@ SHADOW_STATE_DOC_Camera_ON = """{"state" : {"reported" : {"Counting" : "ON"}}}""
 SHADOW_STATE_DOC_Camera_OFF = """{"state" : {"reported" : {"Counting" : "OFF"}}}"""
 # =======================================================
 
+START_COUNTING = False
 
 snapshot = 'my_image.jpg'
 mqttc = mqtt.Client("Bing")
@@ -62,22 +63,23 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
     if DESIRED_Camera_STATUS == "ON":
         # Turn Camera ON
         log.info("Starting counting...")
+        main()
         # Initiate camera
-        camera = picamera.PiCamera()
+        #camera = picamera.PiCamera()
         #GPIO.output(Camera_PIN, GPIO.HIGH)
-        my_file = open(snapshot, 'wb')
-        camera.start_preview()
-        sleep(2)
-        camera.capture(my_file)
-        my_file.close()
-        camera.close()
+        #my_file = open(snapshot, 'wb')
+        #camera.start_preview()
+        #sleep(2)
+        #camera.capture(my_file)
+        #my_file.close()
+        #camera.close()
         # Report Camera ON Status back to Shadow
         log.info("Camera Turned ON. Reporting Status to Shadow...")
         mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_ON,qos=1)
     elif DESIRED_Camera_STATUS == "OFF":
         # Turn Camera OFF
         log.info("\nTurning OFF Camera...")
-        os.remove(snapshot)
+        #os.remove(snapshot)
         # Report Camera OFF Status back to Shadow
         log.info("Camera Turned OFF. Reporting OFF Status to Shadow...")
         mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_OFF,qos=1)
@@ -114,19 +116,19 @@ def on_message(mosq, obj, msg):
         log.info(SHADOW_STATE_DELTA)
         Camera_Status_Change(SHADOW_STATE_DELTA, "DELTA")
     elif str(msg.topic) == SHADOW_GET_ACCEPTED_TOPIC:
-        log.info("\nReceived State Doc with Get Request...")
+        log.info("Received State Doc with Get Request...")
         SHADOW_STATE_DOC = str(msg.payload)
         log.info(SHADOW_STATE_DOC)
         Camera_Status_Change(SHADOW_STATE_DOC, "GET_REQ")
     elif str(msg.topic) == SHADOW_GET_REJECTED_TOPIC:
         SHADOW_GET_ERROR = str(msg.payload)
-        log.info("\n---ERROR--- Unable to fetch Shadow Doc...\nError Response: " + SHADOW_GET_ERROR)
+        log.error("Unable to fetch Shadow Doc...\nError Response: " + SHADOW_GET_ERROR)
     elif str(msg.topic) == SHADOW_UPDATE_ACCEPTED_TOPIC:
-        log.info("\nCamera Status Change Updated SUCCESSFULLY in Shadow...")
+        log.info("Camera Status Change Updated SUCCESSFULLY in Shadow...")
         log.info("Response JSON: " + str(msg.payload))
     elif str(msg.topic) == SHADOW_UPDATE_REJECTED_TOPIC:
         SHADOW_UPDATE_ERROR = str(msg.payload)
-        log.info("\n---ERROR--- Failed to Update the Shadow...\nError Response: " + SHADOW_UPDATE_ERROR)
+        log.error("Failed to Update the Shadow...\nError Response: " + SHADOW_UPDATE_ERROR)
     else:
         log.info("AWS Response Topic: " + str(msg.topic))
         log.info("QoS: " + str(msg.qos))
@@ -288,8 +290,8 @@ def get_centroid(x, y, w, h):
 def detect_vehicles(fg_mask):
     log = logging.getLogger("detect_vehicles")
 
-    MIN_CONTOUR_WIDTH = 10
-    MIN_CONTOUR_HEIGHT = 10
+    MIN_CONTOUR_WIDTH = 15
+    MIN_CONTOUR_HEIGHT = 15
 
     # Find the contours of any object in  the image , but not all vehicles
     contours, hierarchy = cv2.findContours(fg_mask
@@ -341,7 +343,7 @@ def process_frame(frame_number, frame, bg_subtractor, car_counter):
     processed = frame.copy()
 
     # Draw dividing line -- we count cars as they cross this line.
-    cv2.line(processed, (0, car_counter.divider), (frame.shape[1], car_counter.divider), DIVIDER_COLOUR, 1)
+    #cv2.line(processed, (0, car_counter.divider), (frame.shape[1], car_counter.divider), DIVIDER_COLOUR, 1)
 
     # Remove the background
     fg_mask = bg_subtractor.apply(frame, None, 0.01)
@@ -373,6 +375,7 @@ def process_frame(frame_number, frame, bg_subtractor, car_counter):
 # ============================================================================
 
 def main():
+    start = time.time()
     log = logging.getLogger("main")
 
     log.debug("Creating background subtractor...")
@@ -451,6 +454,7 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
     log.debug("Done.")
+    end = time.time()
 
 # ============================================================================
 
@@ -471,7 +475,6 @@ if __name__ == "__main__":
         log.debug("Creating image directory `%s`...", IMAGE_DIR)
         os.makedirs(IMAGE_DIR)
 
-    initial_mqttclient()
-    mqttc.loop_forever()
-
-    #main()
+    #initial_mqttclient()
+    #mqttc.loop_forever()
+    main()
