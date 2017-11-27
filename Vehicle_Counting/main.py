@@ -65,7 +65,10 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
         fqs = cnt * 1.0 / during
         log.info("The frequency is %f [%d,%d]", fqs, cnt, during)
 
-        SHADOW_STATE_DOC_Camera_ON_UPDATE = """{"state" : {"reported" : {"Counting" : "ON",""" + """ "Number":""" + str(cnt) + """, "During":""" + str(during) + """, "Frequency": """ + str(fqs) + """}}}"""
+        SHADOW_STATE_DOC_Camera_ON_UPDATE = """{"state" : {"reported" : {"Counting" : "ON",""" +
+                                                                         """ "Number":""" + str(cnt) +
+                                                                         """, "During":""" + str(during) +
+                                                                         """, "Frequency": """ + str(fqs) + """}}}"""
 
         # Initiate camera
         #camera = picamera.PiCamera()
@@ -85,7 +88,10 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
         #os.remove(snapshot)
         # Report Camera OFF Status back to Shadow
         log.info("Camera Turned OFF. Reporting OFF Status to Shadow...")
-        SHADOW_STATE_DOC_Camera_OFF_UPDATE = """{"state" : {"reported" : {"Counting" : "OFF",""" + """ "Number":""" + str(0) + """, "During":""" + str(0) + """, "Frequency": """+ str(0) + """}}}"""
+        SHADOW_STATE_DOC_Camera_OFF_UPDATE = """{"state" : {"reported" : {"Counting" : "OFF",""" +
+                                    """ "Number":""" + str(0) +
+                                    """, "During":""" + str(0) +
+                                    """, "Frequency": """+ str(0) + """}}}"""
         mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_OFF_UPDATE,qos=1)
     else:
         log.info("---ERROR--- Invalid Camera STATUS.")
