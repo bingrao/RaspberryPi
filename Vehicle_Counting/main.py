@@ -1,5 +1,5 @@
 # ------------------------------------------
-# --- Author: Bing
+# --- Author: Zixia Liu, Bingbing Rao, Lan Luo
 # --- Version: 1.0
 # --- Description: This python script will leverage AWS IoT Shadow to control Camera
 # ------------------------------------------
@@ -23,9 +23,9 @@ CA_ROOT_CERT_FILE = "/home/pi/Documents/Amazon/rootCA.pem.crt"
 # AWS IoT Thing Name
 THING_NAME = "MyRaspberryPi"
 # AWS IoT Thing Certificate File Path
-THING_CERT_FILE = "/home/pi/Documents/Amazon/e14cad1d9a-certificate.pem.crt"
+THING_CERT_FILE = "/home/pi/Documents/Amazon/423ce807c5-certificate.pem.crt"
 # AWS IoT Thing Private Key File Path
-THING_PRIVATE_KEY_FILE = "/home/pi/Documents/Amazon/e14cad1d9a-private.pem.key"
+THING_PRIVATE_KEY_FILE = "/home/pi/Documents/Amazon/423ce807c5-private.pem.key"
 # =======================================================
 # Set global topic, but no need to change following variables
 MQTT_PORT = 8883
@@ -37,9 +37,10 @@ SHADOW_UPDATE_DELTA_TOPIC = "$aws/things/" + THING_NAME + "/shadow/update/delta"
 SHADOW_GET_TOPIC = "$aws/things/" + THING_NAME + "/shadow/get"
 SHADOW_GET_ACCEPTED_TOPIC = "$aws/things/" + THING_NAME + "/shadow/get/accepted"
 SHADOW_GET_REJECTED_TOPIC = "$aws/things/" + THING_NAME + "/shadow/get/rejected"
-#SHADOW_STATE_DOC_Camera_ON = """{"state" : {"reported" : {"Counting" : "ON", "Number":%04d, "During":"%04d"}}}"""
-#SHADOW_STATE_DOC_Camera_OFF = """{"state" : {"reported" : {"Counting" : "OFF"}}}"""
+SHADOW_STATE_DOC_Camera_ON = """{"state" : {"reported" : {"Counting" : "ON"}}}"""
+SHADOW_STATE_DOC_Camera_OFF = """{"state" : {"reported" : {"Counting" : "OFF"}}}"""
 # =======================================================
+
 
 snapshot = 'my_image.jpg'
 mqttc = mqtt.Client("Bing")
@@ -49,7 +50,7 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
     log = logging.getLogger("Camera_Status_Change")
     # Parse Camera Status from Shadow
     DESIRED_Camera_STATUS = ""
-    log.info("\nParsing Shadow Json...")
+    ("\nParsing Shadow Json...")
     SHADOW_State_Doc = json.loads(Shadow_State_Doc)
     if Type == "DELTA":
         DESIRED_Camera_STATUS = SHADOW_State_Doc['state']['Counting']
@@ -61,32 +62,25 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
     if DESIRED_Camera_STATUS == "ON":
         # Turn Camera ON
         log.info("Starting counting...")
-        cnt, during= main()
-        fqs = cnt * 1.0 / during
-        log.info("The frequency is %f [%d,%d]", fqs, cnt, during)
-
-        SHADOW_STATE_DOC_Camera_ON_UPDATE = """{"state" : {"reported" : {"Counting" : "ON",""" + """ "Number":""" + str(cnt) + """, "During":""" + str(during) + """, "Frequency": """ + str(fqs) + """}}}"""
-
         # Initiate camera
-        #camera = picamera.PiCamera()
+        camera = picamera.PiCamera()
         #GPIO.output(Camera_PIN, GPIO.HIGH)
-        #my_file = open(snapshot, 'wb')
-        #camera.start_preview()
-        #sleep(2)
-        #camera.capture(my_file)
-        #my_file.close()
-        #camera.close()
+        my_file = open(snapshot, 'wb')
+        camera.start_preview()
+        sleep(2)
+        camera.capture(my_file)
+        my_file.close()
+        camera.close()
         # Report Camera ON Status back to Shadow
         log.info("Camera Turned ON. Reporting Status to Shadow...")
-        mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_ON_UPDATE,qos=1)
+        mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_ON,qos=1)
     elif DESIRED_Camera_STATUS == "OFF":
         # Turn Camera OFF
         log.info("\nTurning OFF Camera...")
-        #os.remove(snapshot)
+        os.remove(snapshot)
         # Report Camera OFF Status back to Shadow
         log.info("Camera Turned OFF. Reporting OFF Status to Shadow...")
-        SHADOW_STATE_DOC_Camera_OFF_UPDATE = """{"state" : {"reported" : {"Counting" : "OFF",""" + """ "Number":""" + str(0) + """, "During":""" + str(0) + """, "Frequency": """+ str(0) + """}}}"""
-        mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_OFF_UPDATE,qos=1)
+        mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_OFF,qos=1)
     else:
         log.info("---ERROR--- Invalid Camera STATUS.")
 
@@ -120,19 +114,19 @@ def on_message(mosq, obj, msg):
         log.info(SHADOW_STATE_DELTA)
         Camera_Status_Change(SHADOW_STATE_DELTA, "DELTA")
     elif str(msg.topic) == SHADOW_GET_ACCEPTED_TOPIC:
-        log.info("Received State Doc with Get Request...")
+        log.info("\nReceived State Doc with Get Request...")
         SHADOW_STATE_DOC = str(msg.payload)
         log.info(SHADOW_STATE_DOC)
         Camera_Status_Change(SHADOW_STATE_DOC, "GET_REQ")
     elif str(msg.topic) == SHADOW_GET_REJECTED_TOPIC:
         SHADOW_GET_ERROR = str(msg.payload)
-        log.error("Unable to fetch Shadow Doc...\nError Response: " + SHADOW_GET_ERROR)
+        log.info("\n---ERROR--- Unable to fetch Shadow Doc...\nError Response: " + SHADOW_GET_ERROR)
     elif str(msg.topic) == SHADOW_UPDATE_ACCEPTED_TOPIC:
-        log.info("Camera Status Change Updated SUCCESSFULLY in Shadow...")
+        log.info("\nCamera Status Change Updated SUCCESSFULLY in Shadow...")
         log.info("Response JSON: " + str(msg.payload))
     elif str(msg.topic) == SHADOW_UPDATE_REJECTED_TOPIC:
         SHADOW_UPDATE_ERROR = str(msg.payload)
-        log.error("Failed to Update the Shadow...\nError Response: " + SHADOW_UPDATE_ERROR)
+        log.info("\n---ERROR--- Failed to Update the Shadow...\nError Response: " + SHADOW_UPDATE_ERROR)
     else:
         log.info("AWS Response Topic: " + str(msg.topic))
         log.info("QoS: " + str(msg.qos))
@@ -294,8 +288,8 @@ def get_centroid(x, y, w, h):
 def detect_vehicles(fg_mask):
     log = logging.getLogger("detect_vehicles")
 
-    MIN_CONTOUR_WIDTH = 15
-    MIN_CONTOUR_HEIGHT = 15
+    MIN_CONTOUR_WIDTH = 10
+    MIN_CONTOUR_HEIGHT = 10
 
     # Find the contours of any object in  the image , but not all vehicles
     contours, hierarchy = cv2.findContours(fg_mask
@@ -347,7 +341,7 @@ def process_frame(frame_number, frame, bg_subtractor, car_counter):
     processed = frame.copy()
 
     # Draw dividing line -- we count cars as they cross this line.
-    #cv2.line(processed, (0, car_counter.divider), (frame.shape[1], car_counter.divider), DIVIDER_COLOUR, 1)
+    cv2.line(processed, (0, car_counter.divider), (frame.shape[1], car_counter.divider), DIVIDER_COLOUR, 1)
 
     # Remove the background
     fg_mask = bg_subtractor.apply(frame, None, 0.01)
@@ -379,14 +373,13 @@ def process_frame(frame_number, frame, bg_subtractor, car_counter):
 # ============================================================================
 
 def main():
-    start = time.time()
     log = logging.getLogger("main")
 
     log.debug("Creating background subtractor...")
     bg_subtractor = cv2.BackgroundSubtractorMOG()
 
     log.debug("Pre-training the background subtractor...")
-    default_bg = cv2.imread(IMAGE_FILENAME_FORMAT % 1)
+    default_bg = cv2.imread(IMAGE_FILENAME_FORMAT % 119)
     bg_subtractor.apply(default_bg, None, 1.0)
 
     car_counter = None # Will be created after first frame is captured
@@ -396,7 +389,7 @@ def main():
     cap = cv2.VideoCapture(IMAGE_SOURCE)
 
     # Capture every TIME_INTERVAL seconds (here, TIME_INTERVAL = 5)
-    fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)  # Gets the frames per second
+    #fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)  # Gets the frames per second
     #multiplier = TIME_INTERVAL
 
     log.debug("Update car counting by every %d ...", TIME_INTERVAL)
@@ -453,13 +446,11 @@ def main():
         if c == 27:
             log.debug("ESC detected, stopping...")
             break
-    during = frame_number / fps
+
     log.debug("Closing video capture device...")
     cap.release()
     cv2.destroyAllWindows()
     log.debug("Done.")
-    end = time.time()
-    return car_counter.vehicle_count,during
 
 # ============================================================================
 
@@ -482,4 +473,5 @@ if __name__ == "__main__":
 
     initial_mqttclient()
     mqttc.loop_forever()
+
     #main()

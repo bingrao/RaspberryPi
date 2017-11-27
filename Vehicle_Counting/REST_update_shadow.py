@@ -1,5 +1,5 @@
 #------------------------------------------
-# --- Author: Bing
+# --- Author: Zixia Liu, Bingbing Rao, Lan Luo
 # --- Version: 1.0
 #--- Python Ver: Python 2.7
 #--- Description: This code will Update (POST) the Device Shadw State Doc(Json) on AWS IoT Platform

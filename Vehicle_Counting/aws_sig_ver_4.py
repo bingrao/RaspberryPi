@@ -1,6 +1,5 @@
 #------------------------------------------
-#--- Author: Pradeep Singh
-#--- Date: 2nd April 2017
+#--- Author: Author: Zixia Liu, Bingbing Rao, Lan Luo
 #--- Version: 1.0
 #--- Python Ver: Python 2.7
 #--- Description: This code will generate HTTP Request Headers, with AWS Signature 4 Authorization Header.

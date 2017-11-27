@@ -1,3 +1,8 @@
+# ------------------------------------------
+# --- Author: Zixia Liu, Bingbing Rao, Lan Luo
+# --- Version: 1.0
+# --- Description: This python script will leverage AWS IoT Shadow to control Camera
+# ------------------------------------------
 import logging
 import math
 

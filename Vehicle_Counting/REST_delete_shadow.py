@@ -1,5 +1,5 @@
 #------------------------------------------
-# --- Author: Bing
+# --- Author: Zixia Liu, Bingbing Rao, Lan Luo
 # --- Version: 1.0
 #--- Python Ver: Python 2.7
 #--- Description: This code will delete (DELETE) the Device Shadw State Doc(Json) from AWS IoT Platform
