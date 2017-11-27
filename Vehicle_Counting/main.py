@@ -41,8 +41,6 @@ SHADOW_STATE_DOC_Camera_ON = """{"state" : {"reported" : {"Counting" : "ON"}}}""
 SHADOW_STATE_DOC_Camera_OFF = """{"state" : {"reported" : {"Counting" : "OFF"}}}"""
 # =======================================================
 
-START_COUNTING = False
-
 snapshot = 'my_image.jpg'
 mqttc = mqtt.Client("Bing")
 
@@ -475,6 +473,6 @@ if __name__ == "__main__":
         log.debug("Creating image directory `%s`...", IMAGE_DIR)
         os.makedirs(IMAGE_DIR)
 
-    #initial_mqttclient()
-    #mqttc.loop_forever()
-    main()
+    initial_mqttclient()
+    mqttc.loop_forever()
+    #main()
