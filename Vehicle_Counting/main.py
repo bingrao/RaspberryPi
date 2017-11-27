@@ -37,8 +37,8 @@ SHADOW_UPDATE_DELTA_TOPIC = "$aws/things/" + THING_NAME + "/shadow/update/delta"
 SHADOW_GET_TOPIC = "$aws/things/" + THING_NAME + "/shadow/get"
 SHADOW_GET_ACCEPTED_TOPIC = "$aws/things/" + THING_NAME + "/shadow/get/accepted"
 SHADOW_GET_REJECTED_TOPIC = "$aws/things/" + THING_NAME + "/shadow/get/rejected"
-SHADOW_STATE_DOC_Camera_ON = """{"state" : {"reported" : {"Counting" : "ON"}}}"""
-SHADOW_STATE_DOC_Camera_OFF = """{"state" : {"reported" : {"Counting" : "OFF"}}}"""
+#SHADOW_STATE_DOC_Camera_ON = """{"state" : {"reported" : {"Counting" : "ON", "Number":%04d, "During":"%04d"}}}"""
+#SHADOW_STATE_DOC_Camera_OFF = """{"state" : {"reported" : {"Counting" : "OFF"}}}"""
 # =======================================================
 
 snapshot = 'my_image.jpg'
@@ -64,6 +64,9 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
         cnt, during= main()
         fqs = cnt * 1.0 / during
         log.info("The frequency is %f [%d,%d]", fqs, cnt, during)
+
+        SHADOW_STATE_DOC_Camera_ON_UPDATE = """{"state" : {"reported" : {"Counting" : "ON",""" + """ "Number":""" + str(cnt) + """, "During":""" + str(during) + """, "Frequency": """ + str(fqs) + """}}}"""
+
         # Initiate camera
         #camera = picamera.PiCamera()
         #GPIO.output(Camera_PIN, GPIO.HIGH)
@@ -75,14 +78,15 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
         #camera.close()
         # Report Camera ON Status back to Shadow
         log.info("Camera Turned ON. Reporting Status to Shadow...")
-        mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_ON,qos=1)
+        mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_ON_UPDATE,qos=1)
     elif DESIRED_Camera_STATUS == "OFF":
         # Turn Camera OFF
         log.info("\nTurning OFF Camera...")
         #os.remove(snapshot)
         # Report Camera OFF Status back to Shadow
         log.info("Camera Turned OFF. Reporting OFF Status to Shadow...")
-        mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_OFF,qos=1)
+        SHADOW_STATE_DOC_Camera_OFF_UPDATE = """{"state" : {"reported" : {"Counting" : "OFF",""" + """ "Number":""" + str(0) + """, "During":""" + str(0) + """, "Frequency": """+ str(0) + """}}}"""
+        mqttc.publish(SHADOW_UPDATE_TOPIC,SHADOW_STATE_DOC_Camera_OFF_UPDATE,qos=1)
     else:
         log.info("---ERROR--- Invalid Camera STATUS.")
 
@@ -382,7 +386,7 @@ def main():
     bg_subtractor = cv2.BackgroundSubtractorMOG()
 
     log.debug("Pre-training the background subtractor...")
-    default_bg = cv2.imread(IMAGE_FILENAME_FORMAT % 119)
+    default_bg = cv2.imread(IMAGE_FILENAME_FORMAT % 1)
     bg_subtractor.apply(default_bg, None, 1.0)
 
     car_counter = None # Will be created after first frame is captured

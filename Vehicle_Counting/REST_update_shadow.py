@@ -36,9 +36,9 @@ print "Enter 2 to Turn OFF the Camera"
 print "Enter 3 to exit"
 data = raw_input("Select an option:")
 if data == "1":
-	HTTPS_REQUEST_PAYLOAD = """{"state" : {"desired" : {"Counting" : "ON"}}}"""
+	HTTPS_REQUEST_PAYLOAD = """{"state" : {"reported" : {"Counting" : "ON",""" + """ "Number":""" + str(0) + """, "During":""" + str(0) + """, "Frequency": """+ str(0) + """}}}"""
 elif data == "2":
-	HTTPS_REQUEST_PAYLOAD = """{"state" : {"desired" : {"Counting" : "OFF"}}}"""
+	HTTPS_REQUEST_PAYLOAD = """{"state" : {"reported" : {"Counting" : "OFF",""" + """ "Number":""" + str(0) + """, "During":""" + str(0) + """, "Frequency": """+ str(0) + """}}}"""
 elif data == "3":
 	sys.exit()
 else:
