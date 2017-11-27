@@ -61,7 +61,9 @@ def Camera_Status_Change(Shadow_State_Doc, Type):
     if DESIRED_Camera_STATUS == "ON":
         # Turn Camera ON
         log.info("Starting counting...")
-        main()
+        cnt, during= main()
+        fqs = cnt * 1.0 / during
+        log.info("The frequency is %f [%d,%d]", fqs, cnt, during)
         # Initiate camera
         #camera = picamera.PiCamera()
         #GPIO.output(Camera_PIN, GPIO.HIGH)
@@ -390,7 +392,7 @@ def main():
     cap = cv2.VideoCapture(IMAGE_SOURCE)
 
     # Capture every TIME_INTERVAL seconds (here, TIME_INTERVAL = 5)
-    #fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)  # Gets the frames per second
+    fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)  # Gets the frames per second
     #multiplier = TIME_INTERVAL
 
     log.debug("Update car counting by every %d ...", TIME_INTERVAL)
@@ -447,12 +449,13 @@ def main():
         if c == 27:
             log.debug("ESC detected, stopping...")
             break
-
+    during = frame_number / fps
     log.debug("Closing video capture device...")
     cap.release()
     cv2.destroyAllWindows()
     log.debug("Done.")
     end = time.time()
+    return car_counter.vehicle_count,during
 
 # ============================================================================
 
