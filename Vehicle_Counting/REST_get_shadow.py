@@ -18,12 +18,12 @@ from aws_sig_ver_4 import get_HTTP_Request_Header
 
 # ==================================================================
 # CHANGE VALUES FOR FOLLOWING VARIABLES AS PER YOUR SETUP
-ACCESS_KEY = "AKIAJHBMMVMRZFJKSOFQ" # Create one from AWS IAM Module
-SECRET_KEY = "i3UKLxgUa6Q45T0A/nFZbCLbNWhI6SVB1kFYJTfL" # Create one from AWS IAM Module
-IOT_ENDPOINT = "a2xmpbgswmier.iot.us-west-2.amazonaws.com" # From AWS IoT Dashboard, go to "settings" to find your IoT Endpoint
+ACCESS_KEY = "*" # Create one from AWS IAM Module
+SECRET_KEY = "*" # Create one from AWS IAM Module
+IOT_ENDPOINT = "*" # From AWS IoT Dashboard, go to "settings" to find your IoT Endpoint
 AWS_REGION = "us-west-2" # Your AWS Region. Full list at - http://docs.aws.amazon.com/general/latest/gr/rande.html#iot_region
-HTTPS_ENDPOINT_URL = "https://a2xmpbgswmier.iot.us-west-2.amazonaws.com" # Prefix your AWS IoT Endpoint with "https://"
-IoT_THING_NAME = "MyRaspberryPi" # Put your AWS IoT Thing name here.
+HTTPS_ENDPOINT_URL = "https://*" # Prefix your AWS IoT Endpoint with "https://"
+IoT_THING_NAME = "*" # Put your AWS IoT Thing name here.
 # ==================================================================
 # OPTIONAL VARIABLES  - FEEL FREE TO CHANGE IF YOU KNOW WHAT ARE THESE :-)
 HTTPS_METHOD ="GET"
